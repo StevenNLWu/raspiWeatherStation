@@ -120,8 +120,8 @@ def main():
             temp_f = c_to_f(calc_temp)
             # get humidity
             humidity = sense.get_humidity()
-            # convert pressure from millibars to inHg before posting
-            pressure = sense.get_pressure() * 0.0295300
+            # get pressure in millibars # add * 0.0295300 to inHg 
+            pressure = sense.get_pressure()
             # get compass
             compass = sense.get_compass()
             compass_raw = sense.get_compass_raw()
@@ -135,7 +135,7 @@ def main():
             # display on console
             print(str(get_currentTime_iso())
                     + ": "
-                    + "Temp: %sF (%sC), Pressure: %s inHg, Humidity: %s%%"
+                    + "Temp: %sF (%sC), Pressure: %s hPa, Humidity: %s%%"
                     % (round(temp_f, 1), round(temp_c, 1), round(pressure, 1), round(humidity, 1))
                 )
             # display the temp using the HAT's LED light
