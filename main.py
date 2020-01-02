@@ -46,7 +46,7 @@ def c_to_f(input_temp):
     return (input_temp * 1.8) + 32
 
 def get_currentTime_iso():
-    return datetime.datetime.now().replace(microsecond=0).isoformat(),
+    return datetime.datetime.now().replace(microsecond=0).isoformat()
 
 def get_cpu_temp():
     # 'borrowed' from https://www.raspberrypi.org/forums/viewtopic.php?f=104&t=111457
@@ -116,17 +116,27 @@ def main():
             # Calculate the temperature; adjust the temp based on CPU's temp
             calc_temp = get_temp()
             # temp for our purposes
-            temp_c = round(calc_temp, 1)
-            temp_f = round(c_to_f(calc_temp), 1)
+            temp_c = calc_temp
+            temp_f = c_to_f(calc_temp)
             # get humidity
-            humidity = round(sense.get_humidity(), 0)
+            humidity = sense.get_humidity()
             # convert pressure from millibars to inHg before posting
-            pressure = round(sense.get_pressure() * 0.0295300, 1)
-            
+            pressure = sense.get_pressure() * 0.0295300
+            # get compass
+            compass = sense.get_compass()
+            compass_raw = sense.get_compass_raw()
+            # get gyroscope
+            gyro = sense.get_gyroscope()
+            gyro_raw = sense.get_gyroscope_raw()
+            # get accelerometer
+            accel = sense.get_accelerometer()
+            accel_raw = sense.get_accelerometer_raw()
+                      
             # display on console
             print(str(get_currentTime_iso())
                     + ": "
-                    + "Temp: %sF (%sC), Pressure: %s inHg, Humidity: %s%%" % (temp_f, temp_c, pressure, humidity)
+                    + "Temp: %sF (%sC), Pressure: %s inHg, Humidity: %s%%"
+                    % (round(temp_f, 1), round(temp_c, 1), round(pressure, 1), round(humidity, 1))
                 )
             # display the temp using the HAT's LED light
             msg = "%sC"% (temp_c)
@@ -149,11 +159,17 @@ def main():
                         
                         # our weather data
                         weather_data = {
+                            "device": os.uname()[1],
+                            "uploadDatetime": str(get_currentTime_iso()),
                             "temperature": str(temp_c),
                             "humidity": str(humidity),
                             "pressure": str(pressure),
-                            "device": os.uname()[1],
-                            "uploadDatetime": get_currentTime_iso(),
+                            "compass": compass,
+                            "compassRaw": compass_raw,
+                            "gyroscope": gyro,
+                            "gyroscopeRaw": gyro_raw,
+                            "accelerometer": accel,
+                            "accelerometerRaw": accel_raw
                         }
                     
                         # connection to DB
