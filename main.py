@@ -161,9 +161,9 @@ def main():
                         weather_data = {
                             "device": os.uname()[1],
                             "uploadDatetime": str(get_currentTime_iso()),
-                            "temperature": str(temp_c),
-                            "humidity": str(humidity),
-                            "pressure": str(pressure),
+                            "temperature": temp_c,
+                            "humidity": humidity,
+                            "pressure": pressure,
                             "compass": compass,
                             "compassRaw": compass_raw,
                             "gyroscope": gyro,
