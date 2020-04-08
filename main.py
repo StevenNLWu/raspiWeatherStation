@@ -15,15 +15,7 @@ import pymongo
 from pymongo import MongoClient
 import json
 
-from config import WuConfig
 from config import MongoConfig
-
-# enable or disable upload of Weather Underground
-WU_WEATHER_UPLOAD = False
-# how often to do upload
-WU_MEASUREMENT_INTERVAL = 10  # minutes
-# the weather underground URL used to upload weather data
-WU_URL = "http://weatherstation.wunderground.com/weatherstation/updateweatherstation.php"
 
 # enable or disable upload of MongoDB
 MONGODB_UPLOAD = True
@@ -45,8 +37,15 @@ def c_to_f(input_temp):
     # convert input_temp from Celsius to Fahrenheit
     return (input_temp * 1.8) + 32
 
-def get_currentTime_iso():
-    return datetime.datetime.now().replace(microsecond=0).isoformat()
+def get_currentTime_iso(replaceMs = false):
+    if(replaceMs):
+        return datetime.datetime.now().replace(microsecond=0).isoformat()
+    return datetime.datetime.now().isoformat()
+    
+def get_utcTime_iso(replaceMs = false):
+    if(replaceMs):
+        return datetime.datetime.utcnow().replace(microsecond=0).isoformat()
+    return datetime.datetime.utcnow().isoformat()
 
 def get_cpu_temp():
     # 'borrowed' from https://www.raspberrypi.org/forums/viewtopic.php?f=104&t=111457
@@ -159,8 +158,6 @@ def main():
                         
                         # our weather data
                         weather_data = {
-                            "device": os.uname()[1],
-                            "uploadDatetime": str(get_currentTime_iso()),
                             "temperature": temp_c,
                             "humidity": humidity,
                             "pressure": pressure,
@@ -170,6 +167,9 @@ def main():
                             "gyroscopeRaw": gyro_raw,
                             "accelerometer": accel,
                             "accelerometerRaw": accel_raw
+                            "device": os.uname()[1],
+                            "uploadDtInUtc": get_utcTime_iso(),
+                            "uploadDtInLocal": get_currentTime_iso(),
                         }
                     
                         # connection to DB
@@ -184,35 +184,6 @@ def main():
                         except Exception as e:
                             print(str(get_currentTime_iso()) + ": " + "Exception: ", str(e))
                             
-                # ========================================================
-                # Upload weather data to mongoDB
-                # ========================================================
-                # time to upload? (do upload every WU_MEASUREMENT_INTERVAL min)
-                if (current_minute == 0) or ((current_minute % WU_MEASUREMENT_INTERVAL) == 0):
-                    if WU_WEATHER_UPLOAD:
-
-                        # build a weather data object
-                        weather_data = {
-                            "action": "updateraw",
-                            "ID": wu_station_id,
-                            "PASSWORD": wu_station_key,
-                            "dateutc": "now",
-                            "tempf": str(temp_f),
-                            "humidity": str(humidity),
-                            "baromin": str(pressure),
-                        }
-                        
-                        # connect to Weather Underground
-                        try:
-                            print(str(get_currentTime_iso()) + ": " + "Uploading data to Weather Underground")
-                            upload_url = WU_URL + "?" + urlencode(weather_data)
-                            response = urllib2.urlopen(upload_url)
-                            html = response.read()
-                            print("WU's Server response:", html)
-                            response.close()
-                        except Exception as e:
-                            print(str(get_currentTime_iso()) + ": " + "Exception: ", str(e))
-
         # wait a second then check again
         # You can always increase the sleep value below to check less often
         time.sleep(1)  # this should never happen since the above is an infinite loop
@@ -240,11 +211,12 @@ except:
 # ============================================================================
 #  Read Weather Underground Configuration Parameters
 # ============================================================================
-print("\nInitializing Weather Underground configuration")
-wu_station_id = WuConfig.STATION_ID
-wu_station_key = WuConfig.STATION_KEY
-if (wu_station_id is None) or (wu_station_key is None):
-    print("Missing values from the Weather Underground configuration file\n")
+print("\nInitializing DB configuration")
+db_url = MongoConfig.MONGODB_URL
+db_user = MongoConfig.DB_NAME
+db_pw = MongoConfig.COLL_NAME
+if (db_url is None) or (db_user is None) or (db_pw is None):
+    print("Missing values from the DB configuration file\n")
     sys.exit(1)
 
 # Now see what we're supposed to do next
