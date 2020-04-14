@@ -37,13 +37,13 @@ def c_to_f(input_temp):
     # convert input_temp from Celsius to Fahrenheit
     return (input_temp * 1.8) + 32
 
-def get_currentTime_iso(replaceMs = false):
-    if(replaceMs):
+def get_currentTime_iso(replaceMs = False):
+    if replaceMs:
         return datetime.datetime.now().replace(microsecond=0).isoformat()
     return datetime.datetime.now().isoformat()
     
-def get_utcTime_iso(replaceMs = false):
-    if(replaceMs):
+def get_utcTime_iso(replaceMs = False):
+    if replaceMs:
         return datetime.datetime.utcnow().replace(microsecond=0).isoformat()
     return datetime.datetime.utcnow().isoformat()
 
@@ -138,7 +138,7 @@ def main():
                     % (round(temp_f, 1), round(temp_c, 1), round(pressure, 1), round(humidity, 1))
                 )
             # display the temp using the HAT's LED light
-            msg = "%sC"% (temp_c)
+            msg = "%sC"% (round(temp_c, 1))
             sense.show_message(msg, scroll_speed=0.1, text_colour=green)
 
             # ========================================================
@@ -166,10 +166,10 @@ def main():
                             "gyroscope": gyro,
                             "gyroscopeRaw": gyro_raw,
                             "accelerometer": accel,
-                            "accelerometerRaw": accel_raw
+                            "accelerometerRaw": accel_raw,
                             "device": os.uname()[1],
-                            "uploadDtInUtc": get_utcTime_iso(),
-                            "uploadDtInLocal": get_currentTime_iso(),
+                            "uploadDtInUtc": str(get_utcTime_iso(True)),
+                            "uploadDtInLocal": str(get_currentTime_iso(True)),
                         }
                     
                         # connection to DB
